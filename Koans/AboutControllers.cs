@@ -20,33 +20,58 @@ namespace Koans
     public static partial class AboutControllers
     {
         [Koan]
-        public static void SimpleHelloWorldController()
+        public static void RetrieveResponseWithStatusCodeOk()
         {
-            using (var config = new HttpConfiguration())
-            using (var server = new HttpServer(config))
-            using (var client = new HttpClient(server))
+            AboutControllersConfig.Register(GlobalConfiguration.Configuration);
+
+            // Write code to allow the client to retrieve an HttpResponseMessage with a status code of 200 OK.
+            using (var response = WebApiKoans.Client.GetAsync("http://go.com/api/aboutcontrollers").Result)
+                Helpers.AssertEquality(HttpStatusCode.OK, response.StatusCode);
+
+
+            #region Only used for testing
+            GlobalConfiguration.Reset();
+            #endregion
+        }
+
+        [Koan]
+        public static void RetrieveResponseWithContentHelloWorld()
+        {
+            AboutControllersConfig.Register(GlobalConfiguration.Configuration);
+
+            // Write code to allow the client to retrieve an HttpResponseMessage with a status code of 200 OK
+            // and a message body containing the string "Hello, world!".
+            using (var response = WebApiKoans.Client.GetAsync("http://go.com/api/aboutcontrollers").Result)
             {
-                TraceConfig.Register(config);
+                var body = response.Content.ReadAsStringAsync().Result;
 
-                // Controllers are identified through the routing mechanism.
-                // Web API includes a convenient extension method to the
-                // HttpRouteCollection type, which is exposed as the
-                // HttpConfiguration.Routes property. We will use the default
-                // uri template and map it using the `MapHttpRoute` extension method.
-                // If you have worked with MVC, this will be very familiar.
-                // In a larger project, this would most likely be defined in
-                // your Global.asax or WebApiConfig.cs file.
-                config.Routes.MapHttpRoute(
-                    name: "Api",
-                    routeTemplate: "api/{controller}"
-                );
-
-                using (var response = client.GetAsync("http://example.org/api/helloworld").Result)
-                {
-                    var body = response.Content.ReadAsStringAsync().Result;
-                    Helpers.AssertEquality("\"Hello, ApiController!\"", body);
-                }
+                Helpers.AssertEquality(HttpStatusCode.OK, response.StatusCode);
+                Helpers.AssertEquality("Hello, world!", body);
             }
+
+            #region Only used for testing
+            GlobalConfiguration.Reset();
+            #endregion
+        }
+    }
+
+    public static class AboutControllersConfig
+    {
+        public static void Register(HttpConfiguration config)
+        {
+            // Controllers are identified through the routing mechanism.
+            // Web API includes a convenient extension method to the
+            // HttpRouteCollection type, which is exposed as the
+            // HttpConfiguration.Routes property. We will use the default
+            // uri template and map it using the `MapHttpRoute` extension method.
+            // If you have worked with MVC, this will be very familiar.
+            // In a larger project, this would most likely be defined in
+            // your Global.asax or WebApiConfig.cs file.
+            GlobalConfiguration.Configuration.Routes.MapHttpRoute(
+                name: "DefaultApi",
+                routeTemplate: "api/{controller}/{id}",
+                defaults: new { id = RouteParameter.Optional }
+            );
         }
     }
 
@@ -55,7 +80,7 @@ namespace Koans
     // and implements a number of helpful functionality familiar
     // to MVC developers such as ActionFilters, Model Binding,
     // content negotiation, and more.
-    public class HelloWorldController : ApiController
+    public class AboutControllersController : ApiController
     {
         // Inside your controller, define the actions you want to support.
         // By convention, actions matching HTTP method names will be
@@ -74,23 +99,21 @@ namespace Koans
         [Koan]
         public static void CreateAnEchoController()
         {
-            using (var config = new HttpConfiguration())
-            using (var server = new HttpServer(config))
-            using (var client = new HttpClient(server))
-            {
-                TraceConfig.Register(config);
-                config.Routes.MapHttpRoute("Api", "api/{controller}");
+            GlobalConfiguration.Configuration.Routes.MapHttpRoute("Api", "api/{controller}");
 
-                // Now send a POST request from the client to retrieve the result.
-                var uri = "http://example.org/api/echo";
-                var content = new StringContent("Hello, ApiController!");
-                using (var response = client.PostAsync(uri, content).Result)
-                {
-                    var body = response.Content.ReadAsStringAsync().Result;
-                    Helpers.AssertEquality("\"Hello, ApiController!\"", body);
-                    Helpers.AssertEquality(Helpers.__, response.Content.Headers.ContentType.MediaType);
-                }
+            // Now send a POST request from the client to retrieve the result.
+            var uri = "http://example.org/api/echo";
+            var content = new StringContent("Hello, ApiController!");
+            using (var response = WebApiKoans.Client.PostAsync(uri, content).Result)
+            {
+                var body = response.Content.ReadAsStringAsync().Result;
+                Helpers.AssertEquality("\"Hello, ApiController!\"", body);
+                Helpers.AssertEquality(Helpers.__, response.Content.Headers.ContentType.MediaType);
             }
+
+            #region Only used for testing
+            GlobalConfiguration.Reset();
+            #endregion
         }
     }
 
@@ -109,23 +132,21 @@ namespace Koans
         [Koan]
         public static void AreYouSureYouMadeAnEchoController()
         {
-            using (var config = new HttpConfiguration())
-            using (var server = new HttpServer(config))
-            using (var client = new HttpClient(server))
-            {
-                TraceConfig.Register(config);
-                config.Routes.MapHttpRoute("Api", "api/{controller}");
+            GlobalConfiguration.Configuration.Routes.MapHttpRoute("Api", "api/{controller}");
 
-                var uri = "http://example.org/api/testfixed";
-                var content = new StringContent("Hello, ApiController!");
-                using (var response = client.PostAsync(uri, content).Result)
-                {
-                    var body = response.Content.ReadAsStringAsync().Result;
-                    Helpers.AssertEquality(Helpers.__, body);
-                    // Note that this passes for a test of the request's content type as we copied the value above.
-                    Helpers.AssertEquality(Helpers.__, response.Content.Headers.ContentType.MediaType);
-                }
+            var uri = "http://example.org/api/testfixed";
+            var content = new StringContent("Hello, ApiController!");
+            using (var response = WebApiKoans.Client.PostAsync(uri, content).Result)
+            {
+                var body = response.Content.ReadAsStringAsync().Result;
+                Helpers.AssertEquality(Helpers.__, body);
+                // Note that this passes for a test of the request's content type as we copied the value above.
+                Helpers.AssertEquality(Helpers.__, response.Content.Headers.ContentType.MediaType);
             }
+
+            #region Only used for testing
+            GlobalConfiguration.Reset();
+            #endregion
         }
     }
 

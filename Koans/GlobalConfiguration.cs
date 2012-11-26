@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Net.Http.Formatting;
 using System.Web.Http;
 
@@ -7,6 +8,7 @@ namespace Koans
     public static class GlobalConfiguration
     {
         public static readonly HttpConfiguration Configuration;
+        private static bool _isDisposed;
 
         static GlobalConfiguration()
         {
@@ -20,6 +22,9 @@ namespace Koans
 
         public static void Reset()
         {
+            if (_isDisposed)
+                throw new ObjectDisposedException("Configuration");
+
             JsonMediaTypeFormatter jsonFormatter = Configuration.Formatters.JsonFormatter;
             XmlMediaTypeFormatter xmlFormatter = Configuration.Formatters.XmlFormatter;
             Configuration.Formatters.Clear();
@@ -31,8 +36,11 @@ namespace Koans
 
         public static void Dispose()
         {
-            if (Configuration != null)
+            if (Configuration != null && !_isDisposed)
+            {
                 Configuration.Dispose();
+                _isDisposed = true;
+            }
         }
     }
 
